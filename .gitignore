@@ -1,0 +1,6 @@
+/**/.*
+/**/.*/
+!/.gitignore
+manifest.json
+test_main.sh
+test_main.yml
