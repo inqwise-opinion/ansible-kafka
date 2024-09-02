@@ -1,6 +1,7 @@
 ---
-- import_role:
-    name: aws
+- name: AWS role
+  ansible.builtin.import_role:
+    name: inqwise.common.aws
   vars:
     dns_record_list:
     - name: "{{ private_dns }}.{{ private_domain }}"
@@ -9,4 +10,78 @@
       value: "{{ private_ip }}"
       private: true
       ttl: 120
+    tags_facts:
+      private_dns: "private_dns"
+      consul_cluster: "consul_cluster"
+      broker_id: "broker_id"
+      kafka_advertised_listener: "kafka_advertised_listener"
+      #cluster_nodes: "{{ ec2_instance.tags["cluster_nodes"].split(",") | product([private_domain]) | map("join", ".")}}"
+      data_snapshot: "data_snapshot"
+
+- name: Java role
+  ansible.builtin.import_role:
+    name: inqwise.common.java
+
+- debug:
+    var: ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])
+    
+- set_fact:
+    active_interfaces: "{{ active_interfaces | default([]) + [item] }}"
+  loop: "{{ ansible_interfaces }}"
+  when: 
+    - lookup('vars', 'ansible_' ~ item).active
+    - lookup('vars', 'ansible_' ~ item).type != 'loopback'
+    - lookup('vars', 'ansible_' ~ item).type != 'bridge'
+
+- debug:
+    var: active_interfaces 
+
+- debug:
+    var: active_interfaces | first
+
+- name: Consul Agent role
+  ansible.builtin.import_role:
+    name: inqwise.common.consul
+  vars:
+    consul_bind_addr: "{{'{{ GetInterfaceIP \\\"'+ active_interfaces | first +'\\\" }}'}}"
+    consul_retry_join: '["consul.{{ private_domain }}"]'
+    consul_recursors: ['127.0.0.1:53']
+    consul_datacenter: "{{ environment_name }}-dc-1"
+    consul_server: false
+    consul_ui: false
+    consul_services:
+      - name: "kafka"
+        tags: 
+          - broker
+        port: 9092
+        check:
+          name: "Kafka TCP on port 9092"
+          tcp: "localhost:9092"
+          interval: "10s"
+          timeout: "1s"
+      - name: "kafka-controller"
+        tags: 
+          - controller
+        port: 9093
+        check:
+          name: "Kafka Controller TCP on port 9093"
+          tcp: "localhost:9093"
+          interval: "10s"
+          timeout: "1s"
+
+- name: Kafka role
+  ansible.builtin.import_role:
+    name: inqwise.stacktrek.kafka
+
+- name: Consul-Template role
+  ansible.builtin.import_role:
+    name: inqwise.common.consul_template
+    
+- name: Shrink logs role
+  ansible.builtin.include_role:
+    name: shrink_logs
+    apply:
+      tags: installation
+  tags: installation
+
 

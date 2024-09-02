@@ -1,0 +1,11 @@
+---
+roles:
+  - name: users
+    src: robertdebock.users
+
+collections:
+  - source: ./collections/ansible_collections/
+    type: subdirs
+  - source: ./inqwise/
+    type: subdirs
+  #- name: https://github.com/inqwise/ansible-common-collection/releases/download/v1/inqwise-common-1.0.0.tar.gz

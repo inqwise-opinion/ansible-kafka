@@ -7,8 +7,16 @@ app_user: "kafka"
 app_group: "{{ app_user }}"
 users_groups:
   - name: "{{ app_group }}"
+  - name: "consult"
 users:
   - name: "{{ app_user }}"
     group: "{{ app_group }}"
     append: yes
+  - name: consult
+    sudo_options: "ALL=(ALL) NOPASSWD: /bin/systemctl restart kafka"
+    groups:
+      - consult
+      - kafka
+
 private_ip: "{{ ansible_default_ipv4['address'] }}"
+aws_iam_role: "kafka-role"
