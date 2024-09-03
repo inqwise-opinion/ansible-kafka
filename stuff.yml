@@ -13,32 +13,15 @@
     tags_facts:
       private_dns: "private_dns"
       consul_cluster: "consul_cluster"
-      broker_id: "broker_id"
-      kafka_advertised_listener: "kafka_advertised_listener"
-      #cluster_nodes: "{{ ec2_instance.tags["cluster_nodes"].split(",") | product([private_domain]) | map("join", ".")}}"
+      advertised_listener: "kafka_advertised_listener"
+      quorum_voters: "kafka_controller_quorum_voters"
+      node_id: "kafka_node_id"
       data_snapshot: "data_snapshot"
 
 - name: Java role
   ansible.builtin.import_role:
     name: inqwise.common.java
-
-- debug:
-    var: ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])
-    
-- set_fact:
-    active_interfaces: "{{ active_interfaces | default([]) + [item] }}"
-  loop: "{{ ansible_interfaces }}"
-  when: 
-    - lookup('vars', 'ansible_' ~ item).active
-    - lookup('vars', 'ansible_' ~ item).type != 'loopback'
-    - lookup('vars', 'ansible_' ~ item).type != 'bridge'
-
-- debug:
-    var: active_interfaces 
-
-- debug:
-    var: active_interfaces | first
-
+  
 - name: Consul Agent role
   ansible.builtin.import_role:
     name: inqwise.common.consul
@@ -72,10 +55,11 @@
 - name: Kafka role
   ansible.builtin.import_role:
     name: inqwise.stacktrek.kafka
-
+    
 - name: Consul-Template role
   ansible.builtin.import_role:
     name: inqwise.common.consul_template
+  when: consul_template is defined and consul_template.enabled | default(False)
     
 - name: Shrink logs role
   ansible.builtin.include_role:
@@ -83,5 +67,3 @@
     apply:
       tags: installation
   tags: installation
-
-

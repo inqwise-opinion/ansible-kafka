@@ -16,7 +16,7 @@ AWS_REGION = "il-central-1"
 MAIN_SH_ARGS = <<MARKER
 -e "playbook_name=ansible-kafka discord_message_owner_name=#{Etc.getpwuid(Process.uid).name}"
 MARKER
-NODE_COUNT = 3
+NODE_COUNT = 1
 CLUSTER_NAME = "#{Etc.getpwuid(Process.uid).name}-test"
 Vagrant.configure("2") do |config|
   (1..NODE_COUNT).each do |i|
@@ -80,7 +80,9 @@ Vagrant.configure("2") do |config|
         aws.tags = {
           Name: "kafka-test#{i}-#{Etc.getpwuid(Process.uid).name}",
           kafka_cluster: "#{CLUSTER_NAME}",
-          private_dns: "kafka-test-#{Etc.getpwuid(Process.uid).name}"
+          private_dns: "kafka-test#{i}-#{Etc.getpwuid(Process.uid).name}",
+          node_id: "#{i}",
+          quorum_voters: "1@kafka-test1-#{Etc.getpwuid(Process.uid).name}.opinion-stg.local:9093,2@kafka-test2-#{Etc.getpwuid(Process.uid).name}.opinion-stg.local:9093,3@kafka-test3-#{Etc.getpwuid(Process.uid).name}.opinion-stg.local:9093"
         }
       end
     end
