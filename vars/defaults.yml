@@ -20,3 +20,14 @@ users:
 
 private_ip: "{{ ansible_default_ipv4['address'] }}"
 aws_iam_role: "kafka-role"
+disk:
+  name: /dev/sdb
+  mount_options: defaults,noatime
+  mount: /data
+  fstype: xfs
+  size: 5
+  user: "{{ app_user }}"
+  group: "{{ app_group }}"
+  kms_key_id: "{{ disk_kms_key_id }}"
+  delete_on_termination: no
+  app: kafka-data
