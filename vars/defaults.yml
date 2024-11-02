@@ -11,7 +11,7 @@ users_groups:
 users:
   - name: "{{ app_user }}"
     group: "{{ app_group }}"
-    append: yes
+    append: true
   - name: consult
     sudo_options: "ALL=(ALL) NOPASSWD: /bin/systemctl restart kafka"
     groups:
