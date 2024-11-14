@@ -26,9 +26,8 @@
   ansible.builtin.import_role:
     name: inqwise.common.consul
   vars:
-    consul_bind_addr: "{{'{{ GetInterfaceIP \\\"'+ active_interfaces | first +'\\\" }}'}}"
+    consul_bind_addr: "{{ private_ip }}"
     consul_retry_join: '["consul.{{ private_domain }}"]'
-    consul_recursors: ['127.0.0.1:53']
     consul_datacenter: "{{ environment_name }}-dc-1"
     consul_server: false
     consul_ui: false
@@ -36,6 +35,8 @@
       - name: "kafka"
         tags: 
           - broker
+        meta:
+          node_id: "{{ kafka_node_id }}"
         port: 9092
         check:
           name: "Kafka TCP on port 9092"
@@ -45,6 +46,8 @@
       - name: "kafka-controller"
         tags: 
           - controller
+        meta:
+          node_id: "{{ kafka_node_id }}"
         port: 9093
         check:
           name: "Kafka Controller TCP on port 9093"
