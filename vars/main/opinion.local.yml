@@ -1,1 +1,3 @@
-environment_name: opinion-prod
+environment_name: opinion
+internal_base_url: https://internal-opinion.s3.il-central-1.amazonaws.com
+private_domain: opinion.local
